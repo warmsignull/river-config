@@ -66,11 +66,12 @@ Configuration state is kept independent of the repository in `~/.config/river/st
 | `Super + Shift + Z` | Toggle Zen mode | Hides wallpaper, panel, and notifications (restores on exit). |
 | `Super + Q` / `Super + Shift + Q` | Close focused view / exit River | No notifications. |
 | `Super + L` | Immediate lock using selected locker | Cycle locker under `Super + T + L`. |
-| `Super + O` | Toggle current workspace layout between tiling and stacking | Uses rivertile layout switching. |
+| `Super + O` | Toggle current workspace layout between tiling and stacking | Switches rivertile `main-count` between 1 and 0. |
 | `Super + F` | Toggle floating for focused view | Silent unless debug enabled. |
 | `Super + Shift + F` | Toggle fullscreen for focused view | Silent unless debug enabled. |
-| `Super + H/J/K/L` | Change focus | Works in tiling/floating. |
-| `Super + Shift + Left/Right/Up/Down` | Reorder tiles | Uses rivertile swap/cycle commands (tiling mode). |
+| `Super + ←/→/↑/↓` | Change focus | Works in tiling/floating. |
+| `Super + Shift + ←/→` | Move the focused tile left/right | Rivertile swap commands in tiling mode. |
+| `Super + Shift + ↑/↓` | Re-stack the focused tile above/below | Rivertile main/stack rotation in tiling mode. |
 | `Super + 1…0` | Switch to workspace 1–10 | Maintains last workspace history. |
 | `Super + Shift + 1…0` | Move focused window to workspace | |
 | `Super + Tab` / `Super + Shift + Tab` | Next / previous workspace | |

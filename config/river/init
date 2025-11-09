@@ -44,8 +44,8 @@ if command -v rivertile >/dev/null 2>&1; then
 	rivertile \
 		-main-ratio 0.6 \
 		-main-count 1 \
-		-padding 8 \
-		-inner-padding 4 &
+		-outer-padding 8 \
+		-view-padding 4 &
 	disown
 fi
 
@@ -158,15 +158,15 @@ map_spawn normal "${Super}+${Shift}" Z "${BIN_DIR}/river-controls.sh" zen
 
 # --- Window controls ---------------------------------------------------------
 
-map_cmd normal "${Super}" H focus-view left
-map_cmd normal "${Super}" J focus-view down
-map_cmd normal "${Super}" K focus-view up
-map_cmd normal "${Super}" L focus-view right
+map_cmd normal "${Super}" Left focus-view left
+map_cmd normal "${Super}" Down focus-view down
+map_cmd normal "${Super}" Up focus-view up
+map_cmd normal "${Super}" Right focus-view right
 
-map_cmd normal "${Super}+${Shift}" H send-layout-cmd rivertile "swap prev"
-map_cmd normal "${Super}+${Shift}" L send-layout-cmd rivertile "swap next"
-map_cmd normal "${Super}+${Shift}" J send-layout-cmd rivertile "cycle main"
-map_cmd normal "${Super}+${Shift}" K send-layout-cmd rivertile "cycle stack"
+map_cmd normal "${Super}+${Shift}" Left send-layout-cmd rivertile "swap prev"
+map_cmd normal "${Super}+${Shift}" Right send-layout-cmd rivertile "swap next"
+map_cmd normal "${Super}+${Shift}" Up send-layout-cmd rivertile "cycle main"
+map_cmd normal "${Super}+${Shift}" Down send-layout-cmd rivertile "cycle stack"
 
 map_cmd normal "${Super}" O spawn "${BIN_DIR}/river-controls.sh" workspace layout-toggle
 

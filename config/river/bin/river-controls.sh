@@ -325,18 +325,18 @@ display)
 			state_set last_workspace "${current}"
 			riverctl set-focused-tags "$(workspace_mask "${last}")"
 			;;
-			layout-toggle)
-				mode="$(state_get workspace_mode tiling)"
-				if [ "${mode}" = "tiling" ]; then
-					state_set workspace_mode "stacking"
-					riverctl send-layout-cmd rivertile "layout stack"
-					rc_notify "normal" "Workspace" "Stacking layout enabled." "0"
-				else
-					state_set workspace_mode "tiling"
-					riverctl send-layout-cmd rivertile "layout main"
-					rc_notify "normal" "Workspace" "Tiling layout enabled." "0"
-				fi
-				;;
+		layout-toggle)
+			mode="$(state_get workspace_mode tiling)"
+			if [ "${mode}" = "tiling" ]; then
+				state_set workspace_mode "stacking"
+				riverctl send-layout-cmd rivertile "main-count 0"
+				rc_notify "normal" "Workspace" "Stacking layout enabled." "0"
+			else
+				state_set workspace_mode "tiling"
+				riverctl send-layout-cmd rivertile "main-count 1"
+				rc_notify "normal" "Workspace" "Tiling layout enabled." "0"
+			fi
+			;;
 		esac
 		;;
 reload)
