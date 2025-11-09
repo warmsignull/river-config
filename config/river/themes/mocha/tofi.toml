@@ -1,0 +1,22 @@
+[colors]
+background = "#1e1e2eee"
+text = "#f5e0dcff"
+selection = "#313244ff"
+selection-text = "#f5e0dcff"
+match = "#f38ba8ff"
+prompt = "#f38ba8ff"
+border = "#f38ba8ff"
+
+[border]
+width = 2
+radius = 6
+
+[window]
+anchor = "center"
+width = 60
+height = 12
+padding = 18
+
+[font]
+name = "JetBrainsMono Nerd Font"
+size = 12

@@ -1,0 +1,31 @@
+window {
+  font-family: "Inter", sans-serif;
+  font-size: 13px;
+  background-color: rgba(46, 52, 64, 0.95);
+  color: #eceff4;
+  border-radius: 8px;
+  border: 2px solid #88c0d0;
+}
+
+#input {
+  margin: 16px;
+  padding: 12px 16px;
+  border-radius: 6px;
+  background-color: #3b4252;
+  color: #eceff4;
+  border: none;
+}
+
+#scroll {
+  margin: 0 8px 12px;
+}
+
+#entry {
+  padding: 8px 16px;
+  border-radius: 6px;
+}
+
+#entry:selected {
+  background-color: #434c5e;
+  color: #88c0d0;
+}

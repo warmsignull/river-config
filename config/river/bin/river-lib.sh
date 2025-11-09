@@ -273,6 +273,30 @@ rc_apply_style() {
 		cp -f "${theme_dir}/mako.conf" "${HOME}/.config/mako/config"
 	fi
 
+	# Fuzzel configuration
+	if [ -f "${theme_dir}/fuzzel.ini" ]; then
+		mkdir -p "${HOME}/.config/fuzzel"
+		cp -f "${theme_dir}/fuzzel.ini" "${HOME}/.config/fuzzel/fuzzel.ini"
+	fi
+
+	# Wofi stylesheet
+	if [ -f "${theme_dir}/wofi.css" ]; then
+		mkdir -p "${HOME}/.config/wofi"
+		cp -f "${theme_dir}/wofi.css" "${HOME}/.config/wofi/style.css"
+	fi
+
+	# Tofi theme
+	if [ -f "${theme_dir}/tofi.toml" ]; then
+		mkdir -p "${HOME}/.config/tofi"
+		cp -f "${theme_dir}/tofi.toml" "${HOME}/.config/tofi/config"
+	fi
+
+	# bemenu styling script
+	if [ -f "${theme_dir}/bemenu.sh" ]; then
+		mkdir -p "${HOME}/.config/bemenu"
+		cp -f "${theme_dir}/bemenu.sh" "${HOME}/.config/bemenu/style.sh"
+	fi
+
 	# River border color
 	if [ -f "${theme_dir}/river-colors.sh" ]; then
 		# shellcheck disable=SC1090
@@ -398,16 +422,55 @@ rc_run_launcher() {
 	local launcher
 	launcher="$(rc_current_launcher)"
 	case "${launcher}" in
-	fuzzel|wofi|tofi|bemenu-run)
-		if rc_command_exists "${launcher}"; then
-			${launcher} &
+	fuzzel)
+		if rc_command_exists fuzzel; then
+			fuzzel &
 			disown
 		else
-			rc_notify "normal" "River" "Launcher '${launcher}' is not installed." "1"
+			rc_notify "normal" "River" "Launcher 'fuzzel' is not installed." "1"
+		fi
+		;;
+	wofi)
+		if rc_command_exists wofi; then
+			wofi --show drun &
+			disown
+		else
+			rc_notify "normal" "River" "Launcher 'wofi' is not installed." "1"
+		fi
+		;;
+	tofi)
+		if rc_command_exists tofi; then
+			tofi --drun &
+			disown
+		else
+			rc_notify "normal" "River" "Launcher 'tofi' is not installed." "1"
+		fi
+		;;
+	bemenu-run)
+		if rc_command_exists bemenu-run; then
+			local env_file="${HOME}/.config/bemenu/style.sh"
+			local BEMENU_ARGS=()
+			if [ -f "${env_file}" ]; then
+				# shellcheck disable=SC1090
+				source "${env_file}"
+			fi
+			if [ "${#BEMENU_ARGS[@]}" -gt 0 ]; then
+				bemenu-run "${BEMENU_ARGS[@]}" &
+			else
+				bemenu-run &
+			fi
+			disown
+		else
+			rc_notify "normal" "River" "Launcher 'bemenu-run' is not installed." "1"
 		fi
 		;;
 	*)
-		rc_notify "normal" "River" "Unknown launcher '${launcher}'." "1"
+		if rc_command_exists "${launcher}"; then
+			"${launcher}" &
+			disown
+		else
+			rc_notify "normal" "River" "Unknown launcher '${launcher}'." "1"
+		fi
 		;;
 	esac
 }

@@ -2,7 +2,7 @@
 
 This repository delivers a full River compositor experience tailored for Arch Linux (and derivatives). It includes:
 
-- Modular configuration with launcher/terminal/theme toggles, per-style accenting, notification controls, wallpaper automation, and debug/default modes.
+- Modular configuration with launcher/terminal/theme toggles, per-style accenting (Waybar, Mako, launchers), notification controls, wallpaper automation, and debug/default modes.
 - Helper daemons for battery alerts, clipboard scrubbing, privacy toggles, idle locking, and dark-theme synchronisation.
 - Installation scripts that pull in Wayland prerequisites (portals, PipeWire/WirePlumber, seatd) and copy the configuration tree into `~/.config/river/`.
 
@@ -113,6 +113,10 @@ Theme switching copies assets from `config/river/themes/<style>/` into user conf
 - `themes/*/waybar.css` → `~/.config/waybar/style.css`
 - `themes/*/mako.conf` → `~/.config/mako/config`
 - `themes/*/river-colors.sh` → Sets focused border color via `riverctl`
+- `themes/*/fuzzel.ini` → `~/.config/fuzzel/fuzzel.ini`
+- `themes/*/wofi.css` → `~/.config/wofi/style.css`
+- `themes/*/tofi.toml` → `~/.config/tofi/config`
+- `themes/*/bemenu.sh` → `~/.config/bemenu/style.sh` (sourced to populate `BEMENU_ARGS`)
 
 Add your own style by creating a new folder with the same file set and append the style name to `STYLE_OPTIONS` in `river-lib.sh`.
 
@@ -139,6 +143,7 @@ Font profiles update exported `RIVER_FONT_FAMILY/SIZE` variables that can be con
 
 - Override defaults by editing the `DEFAULTS` associative array in `config/river/bin/river-lib.sh` (launcher list, terminal list, initial theme, battery threshold, clipboard timeout, etc.).
 - Add or remove toggle options by editing the respective arrays (`LAUNCHER_OPTIONS`, `TERMINAL_OPTIONS`, `PANEL_OPTIONS`, `STYLE_OPTIONS`, `FONT_OPTIONS`, `LOCKER_OPTIONS`, `WIDGET_SYSTEMS`).
+- Tweak launcher look and feel by editing the theme assets under `config/river/themes/<style>/` (Fuzzel/Wofi/Tofi configs and the bemenu argument script).
 - Adjust idle timeout or DPMS behaviour in `config/river/bin/idle-handler.sh`.
 - Extend privacy mode, battery alerts, or widget toggles by patching the relevant helper in `config/river/bin/`.
 - To supply additional wallpaper logic, replace `rc_apply_wallpaper` or point `wallpaper_path` at a script that returns your desired image.
