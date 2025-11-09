@@ -4,14 +4,11 @@ set -euo pipefail
 
 PACMAN_PACKAGES=(
 	river
-	rivertile
 	waybar
-	yambar
 	nwg-panel
 	mako
 	fuzzel
 	wofi
-	tofi
 	bemenu
 	foot
 	kitty
@@ -29,10 +26,8 @@ PACMAN_PACKAGES=(
 	wf-recorder
 	swayidle
 	swaylock
-	swaylock-effects
 	gtklock
 	waylock
-	wlopm
 	swayosd
 	xdg-desktop-portal
 	xdg-desktop-portal-wlr
@@ -51,6 +46,11 @@ PACMAN_PACKAGES=(
 )
 
 AUR_PACKAGES=(
+	rivertile
+	yambar
+	tofi
+	swaylock-effects
+	wlopm
 	ags
 	eww
 )

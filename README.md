@@ -11,17 +11,18 @@ This repository delivers a full River compositor experience tailored for Arch Li
 - Arch Linux or derivative with Wayland-capable GPU (proprietary NVIDIA requires extra tuning).
 - Ability to run `sudo` for `pacman` installs.
 - A login manager or TTY that can start Wayland sessions.
-- Optional AUR helper (`paru`/`yay`) for `ags`/`eww`.
+- Optional AUR helper (`paru`/`yay`) for `rivertile`, `yambar`, `tofi`, `swaylock-effects`, `wlopm`, `ags`, `eww`.
 
 **Key runtime dependencies** (installed by `scripts/install-packages.sh`):
 
-- River ecosystem: `river`, `rivertile`, `seatd`.
+- River ecosystem: `river`, *`rivertile`*, `seatd`.
 - Portals & PipeWire stack: `xdg-desktop-portal`, `xdg-desktop-portal-wlr`, `xdg-desktop-portal-gtk`, `pipewire`, `wireplumber`.
-- Interface extras: `waybar`, `yambar`, `nwg-panel`, `mako`, `swww`, `swaybg`, `swayosd`, `wlopm`, `swayidle`, `swaylock`, `swaylock-effects`, `gtklock`, `waylock`.
-- Launchers & terminals: `fuzzel`, `wofi`, `tofi`, `bemenu`, `foot`, `kitty`, `alacritty`, `wezterm`.
+- Interface extras: `waybar`, *`yambar`*, `nwg-panel`, `mako`, `swww`, `swaybg`, `swayosd`, *`wlopm`*, `swayidle`, `swaylock`, *`swaylock-effects`*, `gtklock`, `waylock`.
+- Launchers & terminals: `fuzzel`, `wofi`, *`tofi`*, `bemenu`, `foot`, `kitty`, `alacritty`, `wezterm`.
 - Tooling: `brightnessctl`, `pamixer`, `wl-clipboard`, `grim`, `slurp`, `wf-recorder`, `helvum`, `pavucontrol`, `btop`, `upower`, `kvantum`, `qt5ct`, `qt6ct`, `libnotify`, `xdg-user-dirs`.
-- Optional widgets: `eww`, `ags` (installed when an AUR helper is available).
+- Optional widgets: *`eww`*, *`ags`* (installed when an AUR helper is available).
 
+Packages highlighted in italics above (`rivertile`, `yambar`, `tofi`, `swaylock-effects`, `wlopm`, `eww`, `ags`) are sourced from the AUR; `scripts/install-packages.sh` attempts to install them with `paru`/`yay` when present and otherwise prints manual instructions.
 ## Installation
 
 1. Clone the repository and enter it.
