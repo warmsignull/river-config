@@ -15,51 +15,6 @@ source "${BIN_DIR}/river-lib.sh"
 
 ensure_state
 
-# Apply state-dependent services.
-rc_apply_font_profile
-rc_apply_style
-rc_apply_panel
-rc_apply_notifications
-rc_apply_widget_system
-rc_apply_wallpaper
-rc_apply_privacy_mode
-rc_apply_lock_tool
-rc_force_dark_theme
-rc_start_helpers
-
-# General compositor preferences.
-riverctl focus-follows-cursor always || true
-riverctl set-repeat 40 250 || true
-riverctl set-cursor-warp on-output-change || true
-riverctl default-layout rivertile || true
-
-# Configure outputs with 1.0 scale by default.
-while IFS= read -r output; do
-	if [ -n "${output}" ]; then
-		riverctl output "${output}" scale 1.0 || true
-	fi
-done < <(riverctl list-outputs)
-
-# Initialize rivertile layout daemon.
-if command -v rivertile >/dev/null 2>&1; then
-	pkill -x rivertile >/dev/null 2>&1 || true
-	rivertile \
-		-main-ratio 0.6 \
-		-main-count 1 \
-		-outer-padding 8 \
-		-view-padding 4 &
-	disown
-fi
-
-# Launch notification daemon if enabled.
-rc_apply_notifications
-
-# Launch wallpaper handler.
-rc_apply_wallpaper
-
-# Launch panel/bar.
-rc_apply_panel
-
 Super="Mod4"
 Shift="Shift"
 Control="Control"
@@ -216,6 +171,51 @@ map_spawn normal "${Control}" Print "${BIN_DIR}/river-controls.sh" record toggle
 # --- Clipboard ---------------------------------------------------------------
 
 map_spawn normal "${Super}+${Shift}" C "${BIN_DIR}/river-controls.sh" clipboard clear
+
+# Apply state-dependent services after keybindings so they are always available.
+rc_apply_font_profile
+rc_apply_style
+rc_apply_panel
+rc_apply_notifications
+rc_apply_widget_system
+rc_apply_wallpaper
+rc_apply_privacy_mode
+rc_apply_lock_tool
+rc_force_dark_theme
+rc_start_helpers
+
+# General compositor preferences.
+riverctl focus-follows-cursor always || true
+riverctl set-repeat 40 250 || true
+riverctl set-cursor-warp on-output-change || true
+riverctl default-layout rivertile || true
+
+# Configure outputs with 1.0 scale by default.
+while IFS= read -r output; do
+	if [ -n "${output}" ]; then
+		riverctl output "${output}" scale 1.0 || true
+	fi
+done < <(riverctl list-outputs)
+
+# Initialize rivertile layout daemon.
+if command -v rivertile >/dev/null 2>&1; then
+	pkill -x rivertile >/dev/null 2>&1 || true
+	rivertile \
+		-main-ratio 0.6 \
+		-main-count 1 \
+		-outer-padding 8 \
+		-view-padding 4 &
+	disown
+fi
+
+# Launch notification daemon if enabled.
+rc_apply_notifications
+
+# Launch wallpaper handler.
+rc_apply_wallpaper
+
+# Launch panel/bar.
+rc_apply_panel
 
 # --- Privacy -----------------------------------------------------------------
 
