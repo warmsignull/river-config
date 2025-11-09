@@ -480,25 +480,54 @@ rc_run_terminal() {
 	terminal="$(rc_current_terminal)"
 	case "${terminal}" in
 	foot)
-		rc_command_exists foot && foot &
+		if rc_command_exists foot; then
+			foot &
+			disown || true
+		else
+			rc_notify "normal" "River" "Terminal 'foot' is not installed." "1"
+		fi
 		;;
 	kitty)
-		rc_command_exists kitty && kitty &
+		if rc_command_exists kitty; then
+			kitty &
+			disown || true
+		else
+			rc_notify "normal" "River" "Terminal 'kitty' is not installed." "1"
+		fi
 		;;
 	alacritty)
-		rc_command_exists alacritty && alacritty &
+		if rc_command_exists alacritty; then
+			alacritty &
+			disown || true
+		else
+			rc_notify "normal" "River" "Terminal 'alacritty' is not installed." "1"
+		fi
 		;;
 	wezterm)
-		rc_command_exists wezterm && wezterm &
+		if rc_command_exists wezterm; then
+			wezterm &
+			disown || true
+		else
+			rc_notify "normal" "River" "Terminal 'wezterm' is not installed." "1"
+		fi
 		;;
 	gnome-terminal)
-		rc_command_exists gnome-terminal && gnome-terminal &
+		if rc_command_exists gnome-terminal; then
+			gnome-terminal &
+			disown || true
+		else
+			rc_notify "normal" "River" "Terminal 'gnome-terminal' is not installed." "1"
+		fi
 		;;
 	*)
-		rc_notify "normal" "River" "Unknown terminal '${terminal}'." "1"
+		if rc_command_exists "${terminal}"; then
+			"${terminal}" &
+			disown || true
+		else
+			rc_notify "normal" "River" "Unknown terminal '${terminal}'." "1"
+		fi
 		;;
 	esac
-	disown
 }
 
 rc_lock_screen() {
