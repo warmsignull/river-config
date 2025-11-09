@@ -1,109 +1,231 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
-# Abort on error to keep the session predictable.
-set -eu
+# Comprehensive River compositor configuration for Arch Linux.
+# Provides rich toggle modes, automated helpers, and integration with Wayland tooling.
 
-# Ensure commands from ~/.local/bin take precedence.
-export PATH="${HOME}/.local/bin:${PATH}"
+set -euo pipefail
 
-# Launch a background image if swaybg is available.
-if command -v swaybg >/dev/null 2>&1; then
-	swaybg -m fill -i "${HOME}/Pictures/wallpaper.png" &
-fi
+CONFIG_DIR="${HOME}/.config/river"
+BIN_DIR="${CONFIG_DIR}/bin"
 
-# Start a simple status bar if waybar is installed.
-if command -v waybar >/dev/null 2>&1; then
-	waybar &
-fi
+export PATH="${BIN_DIR}:${HOME}/.local/bin:${PATH}"
 
-# Start notification daemon when present.
-if command -v mako >/dev/null 2>&1; then
-	mako &
-fi
+# shellcheck disable=SC1091
+source "${BIN_DIR}/river-lib.sh"
 
-# Configure basic compositor options.
+ensure_state
+
+# Apply state-dependent services.
+rc_apply_font_profile
+rc_apply_style
+rc_apply_panel
+rc_apply_notifications
+rc_apply_widget_system
+rc_apply_wallpaper
+rc_apply_privacy_mode
+rc_apply_lock_tool
+rc_force_dark_theme
+rc_start_helpers
+
+# General compositor preferences.
 riverctl focus-follows-cursor always
 riverctl set-repeat 40 250
 riverctl set-cursor-warp on-output-change
 riverctl default-layout rivertile
 
-# Output layout: enable all connected outputs with automatic scaling.
-for output in $(riverctl list-outputs); do
-	riverctl output "$output" scale 1.0
-done
+# Configure outputs with 1.0 scale by default.
+while IFS= read -r output; do
+	[ -n "${output}" ] && riverctl output "${output}" scale 1.0
+done < <(riverctl list-outputs)
 
-# Define helper to switch rivertile layout.
+# Initialize rivertile layout daemon.
 if command -v rivertile >/dev/null 2>&1; then
 	pkill -x rivertile >/dev/null 2>&1 || true
 	rivertile \
 		-main-ratio 0.6 \
 		-main-count 1 \
-		-padding 4 \
-		-inner-padding 2 \
-		-wayland-socket rivertile-0 &
+		-padding 8 \
+		-inner-padding 4 &
+	disown
 fi
 
-# Common modifiers
+# Launch notification daemon if enabled.
+rc_apply_notifications
+
+# Launch wallpaper handler.
+rc_apply_wallpaper
+
+# Launch panel/bar.
+rc_apply_panel
+
 Super="Mod4"
 Shift="Shift"
+Control="Control"
+Alt="Alt"
 
-# Basic app bindings
-riverctl map normal "$Super" Return spawn foot
-riverctl map normal "$Super" Space spawn fuzzel
-riverctl map normal "$Super" B spawn "firefox"
-riverctl map normal "$Super" E spawn "thunar"
+declare -Ag REGISTERED_BINDINGS=()
+duplicates=()
 
-# Kill focused window / quit river
-riverctl map normal "$Super" Q close
-riverctl map normal "$Super"+"$Shift" Q exit
+register_binding() {
+	local mode="$1"
+	local mods="$2"
+	local key="$3"
+	local signature="${mode}|${mods}|${key}"
+	if [[ -n "${REGISTERED_BINDINGS[${signature}]+x}" ]]; then
+		duplicates+=("${signature}")
+	else
+		REGISTERED_BINDINGS["${signature}"]=1
+	fi
+}
 
-# Launch menu and lock screen
-riverctl map normal "$Super" D spawn fuzzel
-riverctl map normal "$Super" L spawn "swaylock -f"
+map_cmd() {
+	local mode="$1"
+	local mods="$2"
+	local key="$3"
+	shift 3
+	register_binding "${mode}" "${mods}" "${key}"
+	riverctl map "${mode}" "${mods}" "${key}" "$@"
+}
 
-# Change focus
-riverctl map normal "$Super" H focus-view left
-riverctl map normal "$Super" J focus-view down
-riverctl map normal "$Super" K focus-view up
-riverctl map normal "$Super" L focus-view right
+map_spawn() {
+	local mode="$1"
+	local mods="$2"
+	local key="$3"
+	shift 3
+	map_cmd "${mode}" "${mods}" "${key}" spawn "$@"
+}
 
-# Move views
-riverctl map normal "$Super"+"$Shift" H move left 100
-riverctl map normal "$Super"+"$Shift" J move down 100
-riverctl map normal "$Super"+"$Shift" K move up 100
-riverctl map normal "$Super"+"$Shift" L move right 100
+map_spawn_release() {
+	local mode="$1"
+	local mods="$2"
+	local key="$3"
+	shift 3
+	register_binding "${mode}(release)" "${mods}" "${key}"
+	riverctl map -release "${mode}" "${mods}" "${key}" spawn "$@"
+}
 
-# Move views between tags.
+# Modes for toggles and defaults.
+riverctl declare-mode toggles
+riverctl declare-mode defaults
+
+# --- Launchers & Terminals ---------------------------------------------------
+
+map_spawn normal "${Super}" Space "${BIN_DIR}/river-controls.sh" launcher run
+map_spawn normal "${Super}" Return "${BIN_DIR}/river-controls.sh" terminal run
+map_spawn normal "${Super}" E "${BIN_DIR}/river-controls.sh" terminal run
+
+# Toggle launcher/terminal selections via toggle mode (Super+T).
+map_cmd normal "${Super}" T enter-mode toggles
+map_cmd toggles None Escape enter-mode normal
+map_spawn toggles None Space "${BIN_DIR}/toggle-command.sh" launcher cycle
+map_spawn toggles None N "${BIN_DIR}/toggle-command.sh" notifications toggle-manager
+map_spawn toggles None E "${BIN_DIR}/toggle-command.sh" terminal cycle
+map_spawn toggles None Return "${BIN_DIR}/toggle-command.sh" terminal cycle
+map_spawn toggles None F "${BIN_DIR}/toggle-command.sh" font cycle
+map_spawn toggles None S "${BIN_DIR}/toggle-command.sh" style cycle
+map_spawn toggles None W "${BIN_DIR}/toggle-command.sh" wallpaper toggle
+map_spawn toggles "${Shift}" W "${BIN_DIR}/toggle-command.sh" wallpaper transitions
+map_spawn toggles None B "${BIN_DIR}/toggle-command.sh" panel cycle
+map_spawn toggles None L "${BIN_DIR}/toggle-command.sh" lock cycle
+map_spawn toggles None G "${BIN_DIR}/toggle-command.sh" widget cycle
+map_spawn toggles None R "${BIN_DIR}/toggle-command.sh" record toggle area
+
+# Quick access to control panels/widgets from toggle mode.
+map_spawn toggles None A "${BIN_DIR}/toggle-command.sh" panel open-audio
+map_spawn toggles None P "${BIN_DIR}/toggle-command.sh" panel open-power
+map_spawn toggles None M "${BIN_DIR}/toggle-command.sh" panel open-monitor
+
+# --- Defaults reset mode (Super+D + key) -------------------------------------
+
+map_spawn normal "${Super}" D "${BIN_DIR}/defaults-enter.sh"
+map_spawn_release normal "${Super}" D "${BIN_DIR}/defaults-release.sh"
+
+map_cmd defaults None Escape enter-mode normal
+map_spawn defaults None Space "${BIN_DIR}/defaults-command.sh" launcher
+map_spawn defaults None E "${BIN_DIR}/defaults-command.sh" terminal
+map_spawn defaults None N "${BIN_DIR}/defaults-command.sh" notifications
+map_spawn defaults None F "${BIN_DIR}/defaults-command.sh" font
+map_spawn defaults None S "${BIN_DIR}/defaults-command.sh" style
+map_spawn defaults None W "${BIN_DIR}/defaults-command.sh" wallpaper
+map_spawn defaults None B "${BIN_DIR}/defaults-command.sh" panel
+map_spawn defaults None G "${BIN_DIR}/defaults-command.sh" widget
+map_spawn defaults None L "${BIN_DIR}/defaults-command.sh" lock
+# --- Notifications & Debug ---------------------------------------------------
+
+map_spawn normal "${Super}" H "${BIN_DIR}/river-controls.sh" help
+map_spawn normal "${Super}" P "${BIN_DIR}/river-controls.sh" privacy
+map_spawn normal "${Super}+${Shift}" Z "${BIN_DIR}/river-controls.sh" zen
+
+# --- Window controls ---------------------------------------------------------
+
+map_cmd normal "${Super}" H focus-view left
+map_cmd normal "${Super}" J focus-view down
+map_cmd normal "${Super}" K focus-view up
+map_cmd normal "${Super}" L focus-view right
+
+map_cmd normal "${Super}+${Shift}" H send-layout-cmd rivertile "swap prev"
+map_cmd normal "${Super}+${Shift}" L send-layout-cmd rivertile "swap next"
+map_cmd normal "${Super}+${Shift}" J send-layout-cmd rivertile "cycle main"
+map_cmd normal "${Super}+${Shift}" K send-layout-cmd rivertile "cycle stack"
+
+map_cmd normal "${Super}" O spawn "${BIN_DIR}/river-controls.sh" workspace layout-toggle
+
+map_cmd normal "${Super}" F toggle-float
+map_cmd normal "${Super}+${Shift}" F toggle-fullscreen
+
+map_cmd normal "${Super}" Q close
+map_cmd normal "${Super}+${Shift}" Q exit
+
+map_cmd normal "${Super}+${Shift}" R spawn "${BIN_DIR}/river-controls.sh" reload
+
+map_cmd normal "${Super}" L spawn "${BIN_DIR}/river-controls.sh" lock immediate
+
+map_cmd normal "${Super}" Tab spawn "${BIN_DIR}/river-controls.sh" workspace next
+map_cmd normal "${Super}+${Shift}" Tab spawn "${BIN_DIR}/river-controls.sh" workspace prev
+map_cmd normal "${Super}+${Alt}" Backspace spawn "${BIN_DIR}/river-controls.sh" workspace last
+
+# --- Workspaces --------------------------------------------------------------
+
 for tag in $(seq 1 9); do
-	tagmask=$((1 << (tag - 1)))
-	riverctl map normal "$Super" "$tag" set-focused-tags "$tagmask"
-	riverctl map normal "$Super"+"$Shift" "$tag" set-view-tags "$tagmask"
+	map_spawn normal "${Super}" "${tag}" "${BIN_DIR}/river-controls.sh" workspace switch "${tag}"
+	map_spawn normal "${Super}+${Shift}" "${tag}" "${BIN_DIR}/river-controls.sh" workspace move "${tag}"
 done
 
-# Cycle outputs
-riverctl map normal "$Super" Tab focus-output next
-riverctl map normal "$Super"+"$Shift" Tab swap-output next
+map_spawn normal "${Super}" 0 "${BIN_DIR}/river-controls.sh" workspace switch 0
+map_spawn normal "${Super}+${Shift}" 0 "${BIN_DIR}/river-controls.sh" workspace move 0
 
-# Adjust rivertile ratio
-riverctl map normal "$Super" bracketleft send-layout-cmd rivertile "adjust_main_ratio -0.05"
-riverctl map normal "$Super" bracketright send-layout-cmd rivertile "adjust_main_ratio +0.05"
+# --- Media & System controls -------------------------------------------------
 
-# Reload configuration quickly
-riverctl map normal "$Super" BackSpace spawn "$HOME/.config/river/init"
+map_spawn normal None XF86AudioRaiseVolume "${BIN_DIR}/river-controls.sh" volume up
+map_spawn normal None XF86AudioLowerVolume "${BIN_DIR}/river-controls.sh" volume down
+map_spawn normal None XF86AudioMute "${BIN_DIR}/river-controls.sh" volume mute
 
-# Volume controls (pulseaudio / pipewire)
-riverctl map normal None XF86AudioRaiseVolume spawn "pamixer --increase 5"
-riverctl map normal None XF86AudioLowerVolume spawn "pamixer --decrease 5"
-riverctl map normal None XF86AudioMute spawn "pamixer --toggle-mute"
+map_spawn normal None XF86MonBrightnessUp "${BIN_DIR}/river-controls.sh" brightness up 5%
+map_spawn normal None XF86MonBrightnessDown "${BIN_DIR}/river-controls.sh" brightness down 5%
 
-# Brightness controls (pipewire-brightness/brightnessctl)
-riverctl map normal None XF86MonBrightnessUp spawn "brightnessctl set +5%"
-riverctl map normal None XF86MonBrightnessDown spawn "brightnessctl set 5%-"
+# Fn arrow aliases (if exposed as plain arrows)
+# --- Screenshots & Recording -------------------------------------------------
 
-# Arrange layout on startup.
-riverctl spawn "riverctl send-layout-cmd rivertile 'main_count 1'"
+map_spawn normal None Print "${BIN_DIR}/river-controls.sh" screenshot full
+map_spawn normal "${Shift}" Print "${BIN_DIR}/river-controls.sh" screenshot area
+map_spawn normal "${Alt}" Print "${BIN_DIR}/river-controls.sh" screenshot window
+map_spawn normal "${Control}" Print "${BIN_DIR}/river-controls.sh" record toggle full
+
+# --- Clipboard ---------------------------------------------------------------
+
+map_spawn normal "${Super}+${Shift}" C "${BIN_DIR}/river-controls.sh" clipboard clear
+
+# --- Privacy -----------------------------------------------------------------
+
+# --- Hotkey conflict reporting -----------------------------------------------
+
+if [ "${#duplicates[@]}" -gt 0 ]; then
+	unique=$(printf '%s\n' "${duplicates[@]}" | sort -u | tr '\n' ' ')
+	rc_notify "critical" "River Hotkeys" "Duplicate bindings detected: ${unique}" "1"
+fi
 
 # Run user autostart if present.
-if [ -x "${HOME}/.config/river/autostart.sh" ]; then
-	"${HOME}/.config/river/autostart.sh" &
+if [ -x "${CONFIG_DIR}/autostart.sh" ]; then
+	"${CONFIG_DIR}/autostart.sh" &
+	disown
 fi
