@@ -31,7 +31,7 @@ rc_start_helpers
 riverctl focus-follows-cursor always
 riverctl set-repeat 40 250
 riverctl set-cursor-warp on-output-change
-riverctl default-layout rivertile
+riverctl default-layout rivertile || true
 
 # Configure outputs with 1.0 scale by default.
 while IFS= read -r output; do
