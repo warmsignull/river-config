@@ -15,7 +15,13 @@ source "${BIN_DIR}/river-lib.sh"
 
 ensure_state
 
-Super="Mod4"
+INIT_LOG="${RUNTIME_DIR}/init.log"
+mkdir -p "${RUNTIME_DIR}"
+init_log() {
+	printf '%s | %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$1" >>"${INIT_LOG}"
+}
+
+Super="Super"
 Shift="Shift"
 Control="Control"
 Alt="Alt"
@@ -41,7 +47,9 @@ map_cmd() {
 	local key="$3"
 	shift 3
 	register_binding "${mode}" "${mods}" "${key}"
-	riverctl map "${mode}" "${mods}" "${key}" "$@"
+	if ! riverctl map "${mode}" "${mods}" "${key}" "$@"; then
+		init_log "map failed: mode=${mode} mods=${mods} key=${key} args=$*"
+	fi
 }
 
 map_spawn() {
@@ -58,7 +66,9 @@ map_spawn_release() {
 	local key="$3"
 	shift 3
 	register_binding "${mode}(release)" "${mods}" "${key}"
-	riverctl map -release "${mode}" "${mods}" "${key}" spawn "$@"
+	if ! riverctl map -release "${mode}" "${mods}" "${key}" spawn "$@"; then
+		init_log "map-release failed: mode=${mode} mods=${mods} key=${key} args=$*"
+	fi
 }
 
 # Modes for toggles and defaults.
@@ -224,6 +234,7 @@ rc_apply_panel
 if [ "${#duplicates[@]}" -gt 0 ]; then
 	unique=$(printf '%s\n' "${duplicates[@]}" | sort -u | tr '\n' ' ')
 	rc_notify "critical" "River Hotkeys" "Duplicate bindings detected: ${unique}" "1"
+	init_log "duplicate bindings detected: ${unique}"
 fi
 
 # Run user autostart if present.
