@@ -1,1 +1,1 @@
-export RIVER_BORDER_COLOR="#88c0d0ff"
+export RIVER_BORDER_COLOR="0x88c0d0ff"

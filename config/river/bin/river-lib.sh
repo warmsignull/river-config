@@ -278,7 +278,12 @@ rc_apply_style() {
 		# shellcheck disable=SC1090
 		source "${theme_dir}/river-colors.sh"
 		if [ -n "${RIVER_BORDER_COLOR-}" ]; then
-			riverctl border-color-focused "${RIVER_BORDER_COLOR}"
+			local color="${RIVER_BORDER_COLOR}"
+			color="${color#\#}"
+			if [[ "${color}" != 0x* ]]; then
+				color="0x${color}"
+			fi
+			riverctl border-color-focused "${color}"
 		fi
 	fi
 }
