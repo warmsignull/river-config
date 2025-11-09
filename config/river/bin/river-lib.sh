@@ -14,7 +14,7 @@ RUNTIME_DIR="${RUNTIME_DIR:-${STATE_DIR}/runtime}"
 mkdir -p "${STATE_DIR}" "${RUNTIME_DIR}"
 
 declare -A DEFAULTS=(
-	[launcher]="fuzzel"
+	[launcher]="wofi"
 	[notifications_enabled]="1"
 	[notification_manager]="mako"
 	[terminal]="foot"
@@ -35,7 +35,7 @@ declare -A DEFAULTS=(
 	[workspace_mode]="tiling"
 )
 
-LAUNCHER_OPTIONS=(fuzzel wofi tofi bemenu-run)
+LAUNCHER_OPTIONS=(wofi fuzzel tofi bemenu-run)
 TERMINAL_OPTIONS=(foot kitty alacritty wezterm gnome-terminal)
 PANEL_OPTIONS=(waybar yambar nwg-panel none)
 STYLE_OPTIONS=(nord gruvbox mocha)
@@ -411,11 +411,37 @@ rc_apply_zen_mode() {
 }
 
 rc_current_launcher() {
-	state_get launcher fuzzel
+	local launcher
+	launcher="$(state_get launcher wofi)"
+	if [ -n "${launcher}" ] && rc_command_exists "${launcher}"; then
+		printf '%s\n' "${launcher}"
+		return
+	fi
+	for candidate in "${LAUNCHER_OPTIONS[@]}"; do
+		if rc_command_exists "${candidate}"; then
+			state_set launcher "${candidate}"
+			printf '%s\n' "${candidate}"
+			return
+		fi
+	done
+	printf '%s\n' "${launcher}"
 }
 
 rc_current_terminal() {
-	state_get terminal foot
+	local terminal
+	terminal="$(state_get terminal foot)"
+	if [ -n "${terminal}" ] && rc_command_exists "${terminal}"; then
+		printf '%s\n' "${terminal}"
+		return
+	fi
+	for candidate in "${TERMINAL_OPTIONS[@]}"; do
+		if rc_command_exists "${candidate}"; then
+			state_set terminal "${candidate}"
+			printf '%s\n' "${candidate}"
+			return
+		fi
+	done
+	printf '%s\n' "${terminal}"
 }
 
 rc_run_launcher() {
