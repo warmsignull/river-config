@@ -3,7 +3,7 @@
 # Comprehensive River compositor configuration for Arch Linux.
 # Provides rich toggle modes, automated helpers, and integration with Wayland tooling.
 
-set -euo pipefail
+set -uo pipefail
 
 CONFIG_DIR="${HOME}/.config/river"
 BIN_DIR="${CONFIG_DIR}/bin"
