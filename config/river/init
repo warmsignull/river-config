@@ -28,14 +28,16 @@ rc_force_dark_theme
 rc_start_helpers
 
 # General compositor preferences.
-riverctl focus-follows-cursor always
-riverctl set-repeat 40 250
-riverctl set-cursor-warp on-output-change
+riverctl focus-follows-cursor always || true
+riverctl set-repeat 40 250 || true
+riverctl set-cursor-warp on-output-change || true
 riverctl default-layout rivertile || true
 
 # Configure outputs with 1.0 scale by default.
 while IFS= read -r output; do
-	[ -n "${output}" ] && riverctl output "${output}" scale 1.0
+	if [ -n "${output}" ]; then
+		riverctl output "${output}" scale 1.0 || true
+	fi
 done < <(riverctl list-outputs)
 
 # Initialize rivertile layout daemon.

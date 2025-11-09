@@ -12,6 +12,15 @@ ensure_state
 
 command="${1:-}"
 shift || true
+rc_log_action() {
+	if [ "$(state_get debug_mode 0)" != "1" ]; then
+		return
+	fi
+	local log_file="${RUNTIME_DIR}/river-controls.log"
+	mkdir -p "${RUNTIME_DIR}"
+	printf '%s | %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$1" >>"${log_file}"
+}
+rc_log_action "command=${command} args=$*"
 
 workspace_index() {
 	local index="$1"
