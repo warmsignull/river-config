@@ -1,0 +1,109 @@
+#!/bin/sh
+
+# Abort on error to keep the session predictable.
+set -eu
+
+# Ensure commands from ~/.local/bin take precedence.
+export PATH="${HOME}/.local/bin:${PATH}"
+
+# Launch a background image if swaybg is available.
+if command -v swaybg >/dev/null 2>&1; then
+	swaybg -m fill -i "${HOME}/Pictures/wallpaper.png" &
+fi
+
+# Start a simple status bar if waybar is installed.
+if command -v waybar >/dev/null 2>&1; then
+	waybar &
+fi
+
+# Start notification daemon when present.
+if command -v mako >/dev/null 2>&1; then
+	mako &
+fi
+
+# Configure basic compositor options.
+riverctl focus-follows-cursor always
+riverctl set-repeat 40 250
+riverctl set-cursor-warp on-output-change
+riverctl default-layout rivertile
+
+# Output layout: enable all connected outputs with automatic scaling.
+for output in $(riverctl list-outputs); do
+	riverctl output "$output" scale 1.0
+done
+
+# Define helper to switch rivertile layout.
+if command -v rivertile >/dev/null 2>&1; then
+	pkill -x rivertile >/dev/null 2>&1 || true
+	rivertile \
+		-main-ratio 0.6 \
+		-main-count 1 \
+		-padding 4 \
+		-inner-padding 2 \
+		-wayland-socket rivertile-0 &
+fi
+
+# Common modifiers
+Super="Mod4"
+Shift="Shift"
+
+# Basic app bindings
+riverctl map normal "$Super" Return spawn foot
+riverctl map normal "$Super" Space spawn fuzzel
+riverctl map normal "$Super" B spawn "firefox"
+riverctl map normal "$Super" E spawn "thunar"
+
+# Kill focused window / quit river
+riverctl map normal "$Super" Q close
+riverctl map normal "$Super"+"$Shift" Q exit
+
+# Launch menu and lock screen
+riverctl map normal "$Super" D spawn fuzzel
+riverctl map normal "$Super" L spawn "swaylock -f"
+
+# Change focus
+riverctl map normal "$Super" H focus-view left
+riverctl map normal "$Super" J focus-view down
+riverctl map normal "$Super" K focus-view up
+riverctl map normal "$Super" L focus-view right
+
+# Move views
+riverctl map normal "$Super"+"$Shift" H move left 100
+riverctl map normal "$Super"+"$Shift" J move down 100
+riverctl map normal "$Super"+"$Shift" K move up 100
+riverctl map normal "$Super"+"$Shift" L move right 100
+
+# Move views between tags.
+for tag in $(seq 1 9); do
+	tagmask=$((1 << (tag - 1)))
+	riverctl map normal "$Super" "$tag" set-focused-tags "$tagmask"
+	riverctl map normal "$Super"+"$Shift" "$tag" set-view-tags "$tagmask"
+done
+
+# Cycle outputs
+riverctl map normal "$Super" Tab focus-output next
+riverctl map normal "$Super"+"$Shift" Tab swap-output next
+
+# Adjust rivertile ratio
+riverctl map normal "$Super" bracketleft send-layout-cmd rivertile "adjust_main_ratio -0.05"
+riverctl map normal "$Super" bracketright send-layout-cmd rivertile "adjust_main_ratio +0.05"
+
+# Reload configuration quickly
+riverctl map normal "$Super" BackSpace spawn "$HOME/.config/river/init"
+
+# Volume controls (pulseaudio / pipewire)
+riverctl map normal None XF86AudioRaiseVolume spawn "pamixer --increase 5"
+riverctl map normal None XF86AudioLowerVolume spawn "pamixer --decrease 5"
+riverctl map normal None XF86AudioMute spawn "pamixer --toggle-mute"
+
+# Brightness controls (pipewire-brightness/brightnessctl)
+riverctl map normal None XF86MonBrightnessUp spawn "brightnessctl set +5%"
+riverctl map normal None XF86MonBrightnessDown spawn "brightnessctl set 5%-"
+
+# Arrange layout on startup.
+riverctl spawn "riverctl send-layout-cmd rivertile 'main_count 1'"
+
+# Run user autostart if present.
+if [ -x "${HOME}/.config/river/autostart.sh" ]; then
+	"${HOME}/.config/river/autostart.sh" &
+fi
